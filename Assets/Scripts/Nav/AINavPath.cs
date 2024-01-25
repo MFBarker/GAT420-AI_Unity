@@ -12,11 +12,9 @@ public class AINavPath : MonoBehaviour
 		Djikstra,
 		AStar
 	}
+	[SerializeField]AINavAgent agent;
 	[SerializeField] ePathType pathType;
-	[SerializeField] private AINavNode startNode;
-	[SerializeField] private AINavNode endNode;
 
-	AINavAgent agent;
 	List<AINavNode> path = new List<AINavNode>();
 
 	public AINavNode targetNode { get; set; } = null;
@@ -31,15 +29,17 @@ public class AINavPath : MonoBehaviour
 			if (pathType == ePathType.Waypoint) { targetNode = agent.GetNearestAINavNode(value); }
 			else if (pathType == ePathType.Djikstra || pathType == ePathType.AStar) 
 			{
-				GeneratePath(startNode,endNode);
+				AINavNode startNode = agent.GetNearestAINavNode();
+				AINavNode endNode = agent.GetNearestAINavNode(value);
+				
+				GeneratePath(startNode, endNode);
+				targetNode = startNode;
 			}
 		}
 	}
 
 	private void Start()
 	{
-		agent = GetComponent<AINavAgent>();
-		targetNode = (startNode != null) ? startNode : AINavNode.GetRandomAINavNode(); 
 		
 	}
 
@@ -58,7 +58,8 @@ public class AINavPath : MonoBehaviour
 	private void GeneratePath(AINavNode startNode, AINavNode endNode)
 	{
 		AINavNode.ResetNodes();
-		AINavDijkstra.Generate(startNode, endNode, ref path);
+		if (pathType == ePathType.Djikstra) AINavDijkstra.Generate(startNode, endNode, ref path);
+        if (pathType == ePathType.AStar) AINavAStar.Generate(startNode, endNode, ref path);
 	}
 
 	private AINavNode GetNextPathAINavNode(AINavNode node)
@@ -71,6 +72,26 @@ public class AINavPath : MonoBehaviour
 
 		AINavNode nextNode = path[index + 1];
 
-		return null;
+		return nextNode;
 	}
+
+    private void OnDrawGizmosSelected()
+    {
+        if (path.Count == 0) return;
+
+        var pathArray = path.ToArray();
+
+        for (int i = 1; i < path.Count - 1; i++)
+        {
+            Gizmos.color = Color.black;
+            Gizmos.DrawSphere(pathArray[i].transform.position + Vector3.up, 1);
+        }
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(pathArray[0].transform.position + Vector3.up, 1);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(pathArray[pathArray.Length - 1].transform.position + Vector3.up, 1);
+    }
+
 }
