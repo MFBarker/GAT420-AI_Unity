@@ -4,21 +4,26 @@ using UnityEngine;
 
 public class AIAttackState : AIState
 {
+    float timer = 0;
+
     public AIAttackState(AIStateAgent agent) : base(agent)
     { }
 
     public override void OnEnter()
     {
-        Debug.Log("Enter Attack");
+        agent.animator?.SetTrigger("attack");
+        timer = Time.time + 2;
     }
 
     public override void OnExit()
     {
-        Debug.Log("Exit Attack");
     }
 
     public override void OnUpdate()
     {
-        Debug.Log("Update Attack");
+        if (Time.time > timer)
+        {
+            agent.stateMachine.SetState(nameof(AIIdleState));
+        }
     }
 }

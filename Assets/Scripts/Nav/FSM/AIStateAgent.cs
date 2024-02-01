@@ -4,8 +4,11 @@ using UnityEngine;
 
 public class AIStateAgent : AIAgent
 {
-    [SerializeField] AIPerception enemyperception;
-    AIStateMachine stateMachine = new AIStateMachine();
+    public Animator animator;
+    public AIPerception enemyperception;
+    public float health = 100;
+
+    public AIStateMachine stateMachine = new AIStateMachine();
 
     private void Start()
     {
@@ -14,23 +17,30 @@ public class AIStateAgent : AIAgent
         stateMachine.AddState(nameof(AIAttackState),new AIAttackState(this));
         stateMachine.AddState(nameof(AIPatrolState),new AIPatrolState(this));
         stateMachine.AddState(nameof(AIDeathState),new AIDeathState(this));
+        stateMachine.AddState(nameof(AIChaseState),new AIChaseState(this));
 
         stateMachine.SetState(nameof(AIIdleState));
     }
 
     private void Update()
     {
-        var enemies = enemyperception.GetGameObjects();
+        if (health <= 0) stateMachine.SetState(nameof(AIDeathState));
 
-        if (enemies.Length > 0)
-        {
-            stateMachine.SetState(nameof(AIAttackState));
-        }
-        else 
-        {
-            stateMachine.SetState(nameof(AIIdleState));
-        }
-
+        animator?.SetFloat("speed", movement.Velocity.magnitude);
         stateMachine.Update();
+    }
+
+    private void OnGUI()
+    {
+        // draw label of current state above agent
+        GUI.backgroundColor = Color.black;
+        GUI.skin.label.alignment = TextAnchor.MiddleCenter;
+        Rect rect = new Rect(0, 0, 100, 20);
+        // get point above agent
+        Vector3 point = Camera.main.WorldToScreenPoint(transform.position);
+        rect.x = point.x - (rect.width / 2);
+        rect.y = Screen.height - point.y - rect.height - 20;
+        // draw label with current state name
+        GUI.Label(rect, stateMachine.CurrentState.name);
     }
 }
