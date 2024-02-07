@@ -34,6 +34,7 @@ public class AIStateAgent : AIAgent
 
     private void Update()
     {
+        health.value = 100;
         //update paramaters
         timer.value -= Time.deltaTime;
         destinationDistance.value = Vector3.Distance(transform.position, movement.Destination);
@@ -50,6 +51,17 @@ public class AIStateAgent : AIAgent
         if (health <= 0) stateMachine.SetState(nameof(AIDeathState));
 
         animator?.SetFloat("speed", movement.Velocity.magnitude);
+
+        //check for transition
+        foreach (var transition in stateMachine.CurrentState.transitions)
+        {
+            if (transition.ToTransition())
+            {
+                stateMachine.SetState(transition.nextState);
+                break;
+            }
+        }
+
         stateMachine.Update();
     }
 
