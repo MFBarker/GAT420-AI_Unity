@@ -45,7 +45,7 @@ public class AIUtilityObject : MonoBehaviour
 
 	private void Update()
 	{
-		meter.visible = false;
+		//meter.visible = false;
 
 		// show object meter if near agent
 		var colliders = Physics.OverlapSphere(transform.position, radius, agentLayerMask);
