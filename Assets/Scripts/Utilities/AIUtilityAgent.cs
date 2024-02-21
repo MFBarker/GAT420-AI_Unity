@@ -49,38 +49,37 @@ public class AIUtilityAgent : AIAgent
 	{
 		needs ??= GetComponentsInChildren<AIUtilityNeed>();
 	}
-		
-	void Update()
-	{
-		animator.SetFloat("speed", movement.Velocity.magnitude);
 
-		// check if not using utility object, if not look for one to use
-		if (activeUtilityObject == null) 
-		{ 
-			var gameObjects = perception.GetGameObjects();
+    void Update()
+    {
+        animator.SetFloat("speed", movement.Velocity.magnitude);
 
-			// get utility objects
-			var utilityObjects = gameObjects.GetComponents<AIUtilityObject>();
+        // check if not using utility object, if not look for one to use
+        if (activeUtilityObject == null)
+        {
+            var gameObjects = perception.GetGameObjects();
 
-			// ** set active utility object to utility object with the hightest score **
-			foreach(var utilityObject in utilityObjects)
-			{ 
-				utilityObject.score = GetUtilityScore(utilityObject);
-				if (utilityObject.score > scoreThreshold && (activeUtilityObject == null || utilityObject.score > activeUtilityObject.score)) 
-				{
-					activeUtilityObject = utilityObject;
-				}
-			}
+            // get utility objects
+            var utilityObjects = gameObjects.GetComponents<AIUtilityObject>();
 
-			// start active utility object usage
-			if (activeUtilityObject != null) 
-			{
-				StartCoroutine(UseUtilityCR(activeUtilityObject));
-			}
-		}
-	}
+            // ** set active utility object to utility object with the hightest score **
+            foreach (var utilityObject in utilityObjects)
+            {
+                utilityObject.score = GetUtilityScore(utilityObject);
+                if (utilityObject.score > scoreThreshold && (activeUtilityObject == null || utilityObject.score > activeUtilityObject.score))
+                {
+                    activeUtilityObject = utilityObject;
+                }
+            }
+            // start active utility object usage
+            if (activeUtilityObject != null)
+            {
+                StartCoroutine(UseUtilityCR(activeUtilityObject));
+            }
+        }
+    }
 
-	private void LateUpdate()
+    private void LateUpdate()
 	{
 		meter.value = happiness;
 	}
@@ -88,9 +87,9 @@ public class AIUtilityAgent : AIAgent
 	IEnumerator UseUtilityCR(AIUtilityObject utilityObject)
 	{
 		// move to utility position
-		movement.MoveTowards(utilityObject.transform.position);
+		movement.MoveTowards(utilityObject.target.position);
 		// wait until at destination position
-		yield return new WaitUntil(() => Vector3.Distance(transform.position, movement.Destination) < 1);
+		yield return new WaitUntil(() => Vector3.Distance(transform.position, movement.Destination) < 2);
 		// play animation
 		animator.SetBool(utilityObject.animationName, true);
 		// wait duration
@@ -137,6 +136,6 @@ public class AIUtilityAgent : AIAgent
 
 	AIUtilityNeed GetNeedByType(AIUtilityNeed.Type type)
 	{
-		return needs.First(need => need.type == type);
+		return needs.FirstOrDefault(need => need.type == type);
 	}
 }

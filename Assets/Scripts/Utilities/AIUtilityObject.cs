@@ -21,6 +21,7 @@ public class AIUtilityObject : MonoBehaviour
 	[SerializeField] AIUIMeter meterPrefab;
 	[SerializeField] Vector3 meterOffset;
 
+	[SerializeField] public Transform target;
 	public float score { get; set; }
 
 	AIUIMeter meter;
@@ -43,25 +44,30 @@ public class AIUtilityObject : MonoBehaviour
 		}
 	}
 
-	private void Update()
-	{
-		//meter.visible = false;
+    private void Update()
+    {
+        meter.visible = false; // hide meter by default
 
-		// show object meter if near agent
-		var colliders = Physics.OverlapSphere(transform.position, radius, agentLayerMask);
-		if (colliders.Length > 0 ) 
-		{
-			if (colliders[0].TryGetComponent(out AIUtilityAgent agent))
-			{
-				float distance = 1 - Vector3.Distance(colliders[0].transform.position, transform.position) / radius;
-				score = agent.GetUtilityScore(this);
-				meter.alpha = Mathf.Max(0.5f, score * distance);
-				meter.visible = true;
-			}
-		}
-	}
+        // show object meter if near agent
+        var colliders = Physics.OverlapSphere(transform.position, radius, agentLayerMask);
+        if (colliders.Length > 0)
+        {
+            // check colliders for utility agent 
+            foreach (var collider in colliders)
+            {
+                if (collider.TryGetComponent(out AIUtilityAgent agent))
+                {
+                    // set meter alpha based on distance to agent (fade-in)
+                    float distance = 1 - Vector3.Distance(agent.transform.position, transform.position) / radius;
+                    score = agent.GetUtilityScore(this);
+                    meter.alpha = distance;
+                    meter.visible = true;
+                }
+            }
+        }
+    }
 
-	void LateUpdate()
+    void LateUpdate()
 	{
 		meter.value = score;
 		meter.position = transform.position + meterOffset;
